@@ -2,31 +2,37 @@ package elevatorsim;
 
 public class Floor {
 
-	private static int floorID;
-	private static String floorName;
+	private int floorID;
+	private String floorName;
 	
 	public Floor(int floor) {
-		setFloorID(floorID);
+		setFloorID(floor);
+		setFloorName("Floor " + floor);
 	}
 	
-	public Floor(String name) {
+	public Floor(int floor, String name) {
 		setFloorName(name);
+		//no floor id for the elevator
 	}
 
-	public static int getFloorID() {
+	public int getFloorID() {
 		return floorID;
 	}
 
-	public static void setFloorID(int floorID) {
-		Floor.floorID = floorID;
+	private void setFloorID(int floor) {
+		floorID = floor;
 	}
 
-	public static String getFloorName() {
+	public String getFloorName() {
 		return floorName;
 	}
 
-	public static void setFloorName(String floorName) {
-		Floor.floorName = floorName;
+	private void setFloorName(String floor) {
+		floorName = floor;
+	}
+	
+	public String toString() {
+		return getFloorName();
 	}
 	
 }

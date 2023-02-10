@@ -24,7 +24,8 @@ public class Elevator {
 		waitingPersons = new ArrayList<>();//this tells the elevator what people are waiting for the elevator
 		destinationFloors = new ArrayList<>();//this tells the elevator what floors the current passengers want to go to
 		currentPassengers = new ArrayList<>();//this tells the elevator everyone currently on the elevator
-		elevatorFloor = new Floor("elevator");
+		elevatorFloor = new Floor(200, "elevator");
+		System.out.println("Elevator is starting on " + getCurrentFloor());
 	}
 	
 	public int getCurrentFloorID() {
@@ -45,24 +46,43 @@ public class Elevator {
 		
 		int current = getCurrentFloorID();
 		Floor primaryDestination = elevatorDestinations.peek();
+		System.out.println("Elevator primary destination is " + primaryDestination);
 		if(primaryDestination == null) {
 			//do nothing, there are no current destinations for the elevator, time to wait for instruction
 		} else {
 			if(current > primaryDestination.getFloorID()) {
-				System.out.println("Elevator going down");
 				currentFloorID--;
-				loadPassengers();
-				unloadPassengers();
+				System.out.println("Elevator going down to " + getCurrentFloor());
+				if(currentFloorID == primaryDestination.getFloorID()) {
+					reachedDestination();
+				} else {
+					loadPassengers();
+					unloadPassengers();
+				}
 			} else if(current < primaryDestination.getFloorID()) {
-				System.out.println("Elevator going up");
 				currentFloorID++;
-				loadPassengers();
-				unloadPassengers();
+				System.out.println("Elevator going up to " + getCurrentFloor());
+				if(currentFloorID == primaryDestination.getFloorID()) {
+					reachedDestination();
+				} else {
+					loadPassengers();
+					unloadPassengers();
+				}
+			} else {//current floor IS the destination floor
+				reachedDestination();
 			}
 		}
 	}
 	
-	private ArrayList<Person> getWaitingPersons() {
+	private void reachedDestination() {
+		
+		System.out.println("Elevator has reached its destination of " + elevatorDestinations.peek());
+		removeFromDestinationQueue();
+		loadPassengers();
+		unloadPassengers();
+	}
+	
+	public ArrayList<Person> getWaitingPersons() {
 		return waitingPersons;
 	}
 	
@@ -70,12 +90,16 @@ public class Elevator {
 		return floorsWaiting;
 	}
 	
-	private ArrayList<Person> getPassengers() {
+	public ArrayList<Person> getPassengers() {
 		return currentPassengers;
 	}
 	
 	private void addPassenger(Person passenger) {
 		currentPassengers.add(passenger);
+	}
+	
+	private void removePassenger(Person passenger) {
+		currentPassengers.remove(passenger);
 	}
 	
 	private ArrayList<Floor> getDestinations() {
@@ -88,11 +112,16 @@ public class Elevator {
 			//do nothing, it's already there
 		} else {
 			destinationFloors.add(floor);
+			addToDestinationQueue(floor);
 		}
 	}
 	
 	public void addWaitingPerson(Person person) {
 		waitingPersons.add(person);
+	}
+	
+	public void removeWaitingPerson(Person person) {
+		waitingPersons.remove(person);
 	}
 	
 	public void addWaitingFloor(Floor floor) {
@@ -101,22 +130,44 @@ public class Elevator {
 			//do nothing, it's already there
 		} else {
 			floorsWaiting.add(floor);
+			addToDestinationQueue(floor);
 		}
+	}
+	
+	private void addToDestinationQueue(Floor floor) {
+		
+		if(elevatorDestinations.contains(floor)) {
+			//do nothing, it's already there
+		} else {
+			elevatorDestinations.add(floor);
+		}
+	}
+	
+	private void removeFromDestinationQueue() {
+		elevatorDestinations.remove();
 	}
 	
 	public void loadPassengers() {
 
 		Floor current = getCurrentFloor();
 		ArrayList<Floor> waitFloors = getWaitingFloors();
-		ArrayList<Person> waitPeople = getWaitingPersons();
+		ArrayList<Person> waitPeople = (ArrayList<Person>) getWaitingPersons().clone();
 		
-		if (waitFloors.contains(current)) {
+		if (waitFloors.contains(current) && !waitPeople.isEmpty()) {
 			for(Person waitPerson : waitPeople) {
 				if(waitPerson.getCurrentFloor().equals(current)) {
-					waitPeople.remove(waitPerson);
+					removeWaitingPerson(waitPerson);
+					waitPerson.setWaitingState(false);
 					addPassenger(waitPerson);
+					Floor waitPersonCurrentFloor = waitPerson.getCurrentFloor();
+					waitPerson.setCurrentFloor(elevatorFloor, false);//set passenger's current floor to be the elevator
+					Floor waitPersonDestinationFloor = waitPerson.getCurrentFloor();
+					while(waitPersonCurrentFloor.equals(waitPersonDestinationFloor) || waitPersonDestinationFloor.equals(elevatorFloor)) {
+						//ensure that the person getting on the elevator doesn't want to stay on the same floor
+						waitPersonDestinationFloor = allFloors.get((int) (Math.random() * allFloors.size()));//setting the person's destination floor
+					}
+					waitPerson.setDestinationFloor(waitPersonDestinationFloor);//setting the person's destination floor
 					addDestination(waitPerson.getDestinationFloor());
-					waitPerson.setCurrentFloor(elevatorFloor);//set passenger's current floor to be the elevator
 					waitFloors.remove(current);//remove current floor as we just loaded its passengers
 				}
 			}
@@ -128,14 +179,14 @@ public class Elevator {
 	private void unloadPassengers() {
 		
 		Floor current = getCurrentFloor();
-		ArrayList<Person> passengers = getPassengers();
+		ArrayList<Person> passengers = (ArrayList<Person>) getPassengers().clone();
 		ArrayList<Floor> dests = getDestinations();
 		
-		if(dests.contains(current)) {
+		if(dests.contains(current) && !passengers.isEmpty()) {
 			for(Person passenger : passengers) {
 				if(passenger.getDestinationFloor().equals(current)) {//if a passenger wanted to go to the current floor, unload them and set their current floor
-					passengers.remove(passenger);
-					passenger.setCurrentFloor(current);
+					removePassenger(passenger);
+					passenger.setCurrentFloor(current, true);
 				}
 			}
 			
