@@ -42,7 +42,7 @@ public class Person {
 	public void setWaitingState(boolean state) {
 		waiting = state;
 		if(waiting) {
-			System.out.println("Person " + getName() + " is now waiting for the elevator on " + getCurrentFloor());
+			System.out.println("Person " + getName() + " has requested the elevator and is now waiting for the elevator on " + getCurrentFloor());
 		}
 	}
 	
