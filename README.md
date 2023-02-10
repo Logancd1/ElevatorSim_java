@@ -2,9 +2,19 @@
 Simulation of an elevator
 
 ## Assumptions
-1. Elevator does not have up & down buttons on each floor.
+1. Elevator does not have up & down buttons on each floor, but instead just a single button to request the elevator.
 2. Elevator uses a FIFO algorithm (while also picking up and dropping off passengers along its route).
 3. Elevator has no maximum capacity.
+4. People are kind and hold the door open for one another (no open & close buttons).
+
+## Features not Implemented
+1. Up & down buttons on each floor. Up & down buttons can be implemented by switching from one large queue to an upQueue and a downQueue, and having the elevator switch between the two depending on needs.
+2. Door-open and door-close buttons. Aren't they mostly useless in elevators anyway?
+3. No GUI. This simulator is completely text-based. 
+
+## Other Notes
+1. Building is no taller than 15 floors. This is for easier readability of events.
+2. Maximum number of people is 2 * the number of floors in the building. This is also for easier readability of events.
 
 ## Outline
 
